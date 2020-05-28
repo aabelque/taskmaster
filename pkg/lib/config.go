@@ -20,13 +20,15 @@ func get_config_folder() (string, error) {
 	}
 }
 
-func GetConfig(conf interface{}, filename string) error {
-	config_folder, err := get_config_folder()
-	if err != nil {
-		return err
-	}
+func GetConfig(conf interface{}, filename string, config_file string) error {
+    if config_file == "" {
+        config_folder, err := get_config_folder()
+        if err != nil {
+            return err
+        }
 
-	config_file := path.Join(config_folder, filename)
+        config_file = path.Join(config_folder, filename)
+    }
 
 	content, err := ioutil.ReadFile(config_file)
 	if err != nil {
