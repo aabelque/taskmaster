@@ -7,7 +7,7 @@ import (
 
 func restart_message() {
 	var message strings.Builder
-	message.WriteString("\033[0;31mError\033[0m: restart requires a process name\n")
+	message.WriteString("\x1b[31mError\x1b[0m: restart requires a process name\n")
 	message.WriteString("restart <name>          Restart a process\n")
 	message.WriteString("restart <name> <name>   Restart multiple processes\n")
 	message.WriteString("restart all             Restart all processes")
@@ -16,7 +16,7 @@ func restart_message() {
 
 func start_message() {
 	var message strings.Builder
-	message.WriteString("\033[0;31mError\033[0m: start requires a process name\n")
+	message.WriteString("\x1b[31mError\x1b[0m: start requires a process name\n")
 	message.WriteString("start <name>          Start a process\n")
 	message.WriteString("start <name> <name>   Start multiple processes\n")
 	message.WriteString("start all             Start all processes")
@@ -25,7 +25,7 @@ func start_message() {
 
 func stop_message() {
 	var message strings.Builder
-	message.WriteString("\033[0;31mError\033[0m: stop requires a process name\n")
+	message.WriteString("\x1b[31mError\x1b[0m: stop requires a process name\n")
 	message.WriteString("stop <name>          Stop a process\n")
 	message.WriteString("stop <name> <name>   Stop multiple processes\n")
 	message.WriteString("stop all             Stop all processes")

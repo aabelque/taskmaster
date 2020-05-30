@@ -7,11 +7,11 @@ import (
 )
 
 func reload_process() {
-	fmt.Println("Really restart the remote supervisord process y/N?")
+	fmt.Println("Really restart the remote taskmasterd process y/N?")
 	buf := bufio.NewReader(os.Stdin)
 	response, err := buf.ReadByte()
 	if err != nil {
-		os.Exit(1)
+		return
 	}
 	switch string(response) {
 	case "y":

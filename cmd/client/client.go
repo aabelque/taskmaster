@@ -32,7 +32,7 @@ func main() {
 		Prompt:            "taskmaster> ",
 		HistoryFile:       ".history_taskmaster",
 		InterruptPrompt:   "^C",
-		EOFPrompt:         "quit",
+		EOFPrompt:         "",
 		AutoComplete:      completer,
 		HistorySearchFold: true,
 	})
