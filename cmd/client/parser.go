@@ -7,20 +7,20 @@ import (
 )
 
 func check_command(command string) {
-	switch {
-	case command == quit:
+	switch command {
+	case quit:
 		os.Exit(0)
-	case command == help:
+	case help:
 		help_message()
-	case command == reload:
+	case reload:
 		reload_process()
-	case command == status:
+	case status:
 		// TODO status_process()
-	case command == start:
+	case start:
 		start_message()
-	case command == restart:
+	case restart:
 		restart_message()
-	case command == stop:
+	case stop:
 		stop_message()
 	default:
 		break

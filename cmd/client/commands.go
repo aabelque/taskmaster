@@ -10,12 +10,15 @@ func reload_process() {
 	fmt.Println("Really restart the remote supervisord process y/N?")
 	buf := bufio.NewReader(os.Stdin)
 	response, err := buf.ReadByte()
-	switch {
-	case err != nil:
+	if err != nil {
 		os.Exit(1)
-	case string(response) == "y":
+	}
+	switch string(response) {
+	case "y":
 		// TODO request to server
-	case string(response) == "N" || string(response) == "n":
+	case "n":
+		break
+	case "N":
 		break
 	default:
 		reload_process()
