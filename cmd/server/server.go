@@ -1,68 +1,100 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/kyazdani42/taskmaster/pkg/lib"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 )
 
-type Command struct {
-	Command          string
-	Instances        uint
-	Startup          bool
-	Reload           string
-	Return_value     int
-	Valid_after      int
-	Kill_after       int
-	Closing_signal   string // should be an int ?
-	Wait_before_kill int
-	Stdout           []string
-	Stderr           []string
-	Env              []string
-	Cwd              string
-	Umask            int // maybe a string ?
+type Env struct {
+	config       string
+	verbose_conf bool
+	verbose_logs bool
 }
 
-type Config = map[string]map[string]Command
+func parse_flags() Env {
+	config := flag.String("config", "", "configuration file path")
+	verbose := flag.String("verbose", "", "one of conf, logs or all")
+	flag.Parse()
 
-func get_server_config() (Config, error) {
-	var conf Config
-	if err := config.GetConfig(&conf, "config.toml"); err != nil {
-		return conf, err
+	verbose_conf := false
+	verbose_logs := false
+
+	switch *verbose {
+	case "all":
+		verbose_conf = true
+		verbose_logs = true
+	case "conf":
+		verbose_conf = true
+	case "logs":
+		verbose_logs = true
 	}
-	return conf, nil
-}
 
-func load_signals(conf *Config) {
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP)
-	for range c {
-		new_conf, err := get_server_config()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		*conf = new_conf
-		fmt.Println(conf)
+	return Env{
+		config:       *config,
+		verbose_conf: verbose_conf,
+		verbose_logs: verbose_logs,
 	}
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
 }
 
 func main() {
-	conf, err := get_server_config()
+	env := parse_flags()
+	conf, err := get_server_config(env.config)
 	if err != nil {
 		fmt.Println(err)
-		return
+		os.Exit(1)
 	}
 
-	go load_signals(&conf)
+	go load_signals(&conf, &env)
 
-	http.HandleFunc("/", handler)
+	if env.verbose_conf {
+		conf.Print()
+	}
+
+	for cmd_name, cmd := range conf.Program {
+		if cmd.Startup {
+			if cmd.Instances > 1 {
+				var i uint
+				for i = 0; i < cmd.Instances; i++ {
+					go cmd.run(fmt.Sprintf("%s-%d", cmd_name, i))
+				}
+			} else {
+				go cmd.run(cmd_name)
+			}
+		}
+	}
+
+	http.HandleFunc("/reload", unimplemented)
+	http.HandleFunc("/status", unimplemented)
+	http.HandleFunc("/start", unimplemented)
+	http.HandleFunc("/restart", unimplemented)
+	http.HandleFunc("/stop", unimplemented)
+	http.HandleFunc("/list_progs", program_lister(&conf))
+
 	http.ListenAndServe(":3000", nil)
+}
+
+func program_lister(config *Config) func(http.ResponseWriter, *http.Request) {
+	keys := make([]string, len(config.Program))
+	i := 0
+	for k := range config.Program {
+		keys[i] = k
+		i++
+	}
+
+	return func(res http.ResponseWriter, req *http.Request) {
+		val, err := json.Marshal(keys)
+		if err != nil {
+			res.WriteHeader(500)
+			return
+		}
+
+		res.Write(val)
+	}
+}
+
+func unimplemented(res http.ResponseWriter, req *http.Request) {
+	res.Write([]byte("Unimplemented !"))
 }
