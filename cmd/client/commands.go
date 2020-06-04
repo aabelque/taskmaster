@@ -3,10 +3,13 @@ package main
 import (
 	"bufio"
 	"fmt"
+	// "log"
+	// "net/http"
+	// "net/http/httputil"
 	"os"
 )
 
-func reload_process() {
+func reload_process(conf Config) {
 	if !cli {
 		fmt.Println("Really restart the remote taskmasterd process y/N?")
 		buf := bufio.NewReader(os.Stdin)
@@ -22,7 +25,7 @@ func reload_process() {
 		case "N":
 			break
 		default:
-			reload_process()
+			reload_process(conf)
 		}
 	} else {
 		// TODO request to server

@@ -64,13 +64,13 @@ func prompt(conf Config) {
 		} else if err == io.EOF {
 			break
 		}
-		parser_line(line)
+		parser_line(line, conf)
 	}
 }
 
 func command_line(conf Config) {
 	if len(os.Args) == 2 {
-		check_command(os.Args[1:])
+		check_command(os.Args[1:], conf)
 	} else {
 		command, process := os.Args[1], os.Args[2:]
 		choose_command(command, process, conf)
