@@ -29,32 +29,32 @@ func reload_process() {
 	}
 }
 
-func status_process() {
+func status_process(conf Config) {
 	// TODO request to server
 }
 
-func start_process(process []string) {
+func start_process(process []string, conf Config) {
 	// TODO request to server
 }
 
-func restart_process(process []string) {
+func restart_process(process []string, conf Config) {
 	// TODO request to server
 }
 
-func stop_process(process []string) {
+func stop_process(process []string, conf Config) {
 	// TODO request to server
 }
 
-func choose_command(command string, process []string) {
+func choose_command(command string, process []string, conf Config) {
 	switch command {
 	case start:
-		start_process(process)
+		start_process(process, conf)
 	case restart:
-		restart_process(process)
+		restart_process(process, conf)
 	case stop:
-		stop_process(process)
+		stop_process(process, conf)
 	case status:
-		status_process()
+		status_process(conf)
 	default:
 		break
 	}

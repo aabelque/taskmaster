@@ -68,12 +68,12 @@ func prompt(conf Config) {
 	}
 }
 
-func command_line() {
+func command_line(conf Config) {
 	if len(os.Args) == 2 {
 		check_command(os.Args[1:])
 	} else {
 		command, process := os.Args[1], os.Args[2:]
-		choose_command(command, process)
+		choose_command(command, process, conf)
 	}
 }
 
@@ -84,7 +84,7 @@ func main() {
 	}
 	if len(os.Args) > 1 {
 		cli = true
-		command_line()
+		command_line(conf)
 	} else {
 		prompt(conf)
 	}
