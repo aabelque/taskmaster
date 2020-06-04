@@ -8,6 +8,17 @@ import (
 	"github.com/chzyer/readline"
 )
 
+type Config struct {
+	Serverurl    string
+	Port         uint16
+	Username     string
+	Password     string
+	Prompt       string
+	History_file string
+}
+
+var cli bool = false
+
 const (
 	help    = "help"
 	status  = "status"
@@ -19,18 +30,18 @@ const (
 )
 
 var completer = readline.NewPrefixCompleter(
-	readline.PcItem("status"),
-	readline.PcItem("start"),
-	readline.PcItem("restart"),
-	readline.PcItem("reload"),
-	readline.PcItem("stop"),
-	readline.PcItem("quit"),
+	readline.PcItem(status),
+	readline.PcItem(start),
+	readline.PcItem(restart),
+	readline.PcItem(reload),
+	readline.PcItem(stop),
+	readline.PcItem(quit),
 )
 
-func main() {
+func prompt(conf Config) {
 	l, err := readline.NewEx(&readline.Config{
-		Prompt:            "taskmaster> ",
-		HistoryFile:       ".history_taskmaster",
+		Prompt:            conf.Prompt,
+		HistoryFile:       conf.History_file,
 		InterruptPrompt:   "^C",
 		EOFPrompt:         "",
 		AutoComplete:      completer,
@@ -54,5 +65,27 @@ func main() {
 			break
 		}
 		parser_line(line)
+	}
+}
+
+func command_line() {
+	if len(os.Args) == 2 {
+		check_command(os.Args[1:])
+	} else {
+		command, process := os.Args[1], os.Args[2:]
+		choose_command(command, process)
+	}
+}
+
+func main() {
+	var conf Config
+	if err := get_client_config(&conf); err != nil {
+		os.Exit(1)
+	}
+	if len(os.Args) > 1 {
+		cli = true
+		command_line()
+	} else {
+		prompt(conf)
 	}
 }
