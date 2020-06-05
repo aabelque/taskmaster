@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -23,22 +24,61 @@ type Command struct {
 	Umask            int // maybe a string ?
 }
 
+func getFile(v []string) (*os.File, error) {
+	var fd *os.File
+	var err error
+
+	switch v[0] {
+	case "normal":
+		fd = os.Stdout
+		break
+	case "close":
+		fd, err = os.OpenFile(os.DevNull, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		break
+	case "redirect":
+		fd, err = os.OpenFile(v[1], os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		break
+	default:
+		return nil, errors.New("Wrong config option")
+	}
+
+	if err != nil {
+		return nil, err
+	} else {
+		return fd, nil
+	}
+}
+
+func getFiles(stdout []string, stderr []string) (*os.File, *os.File, error) {
+	outFd, err := getFile(stdout)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	errFd, err := getFile(stderr)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return outFd, errFd, nil
+}
+
 func (c Command) run(name string, l *Logger) {
 	args := strings.Split(c.Command, " ")
 
 	cmd := args[0]
 	files := make([]*os.File, 3, 3)
 
-	closed, err := os.OpenFile(os.DevNull, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	fdOut, fdErr, err := getFiles(c.Stdout, c.Stderr)
 	if err != nil {
-		l.LogActivity("CRIT", "oserror", "could not open "+os.DevNull)
+		l.LogActivity("CRIT", "fileerror", err.Error())
 		return
 	}
-	defer closed.Close()
+	defer fdOut.Close()
+	defer fdErr.Close()
 
-	files[0] = closed
-	files[1] = closed
-	files[2] = closed
+	files[1] = fdOut
+	files[2] = fdErr
 
 	attr := os.ProcAttr{Dir: c.Cwd, Env: c.Env, Files: files}
 
