@@ -38,10 +38,10 @@ var completer = readline.NewPrefixCompleter(
 	readline.PcItem(quit),
 )
 
-func prompt(conf Config) {
+func prompt(c Config) {
 	l, err := readline.NewEx(&readline.Config{
-		Prompt:            conf.Prompt,
-		HistoryFile:       conf.History_file,
+		Prompt:            c.Prompt,
+		HistoryFile:       c.History_file,
 		InterruptPrompt:   "^C",
 		EOFPrompt:         "",
 		AutoComplete:      completer,
@@ -64,16 +64,16 @@ func prompt(conf Config) {
 		} else if err == io.EOF {
 			break
 		}
-		parser_line(line, conf)
+		parser_line(line, c)
 	}
 }
 
-func command_line(conf Config) {
+func command_line(c Config) {
 	if len(os.Args) == 2 {
-		check_command(os.Args[1:], conf)
+		check_command(os.Args[1:], c)
 	} else {
 		command, process := os.Args[1], os.Args[2:]
-		choose_command(command, process, conf)
+		choose_command(command, process, c)
 	}
 }
 

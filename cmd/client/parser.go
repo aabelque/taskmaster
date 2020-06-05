@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func check_command(args []string, conf Config) {
+func check_command(args []string, c Config) {
 	command := strings.TrimSpace(args[0])
 	switch command {
 	case quit:
@@ -13,9 +13,9 @@ func check_command(args []string, conf Config) {
 	case help:
 		help_message()
 	case reload:
-		reload_process(conf)
+		reload_process(c)
 	case status:
-		status_process(conf)
+		status_process(c)
 	case start:
 		start_message()
 	case restart:
@@ -27,12 +27,12 @@ func check_command(args []string, conf Config) {
 	}
 }
 
-func parser_line(line string, conf Config) {
+func parser_line(line string, c Config) {
 	args := strings.Split(strings.TrimSpace(line), " ")
 	if len(args) == 1 {
-		check_command(args, conf)
+		check_command(args, c)
 	} else {
 		command, process := args[0], args[1:]
-		choose_command(command, process, conf)
+		choose_command(command, process, c)
 	}
 }

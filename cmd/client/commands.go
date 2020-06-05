@@ -9,7 +9,7 @@ import (
 	"os"
 )
 
-func reload_process(conf Config) {
+func reload_process(c Config) {
 	if !cli {
 		fmt.Println("Really restart the remote taskmasterd process y/N?")
 		buf := bufio.NewReader(os.Stdin)
@@ -25,30 +25,30 @@ func reload_process(conf Config) {
 		case "N":
 			break
 		default:
-			reload_process(conf)
+			reload_process(c)
 		}
 	} else {
 		// TODO request to server
 	}
 }
 
-func status_process(conf Config) {
+func status_process(c Config) {
 	// TODO request to server
 }
 
-func start_process(process []string, conf Config) {
+func start_process(process []string, c Config) {
 	// TODO request to server
 }
 
-func restart_process(process []string, conf Config) {
+func restart_process(process []string, c Config) {
 	// TODO request to server
 }
 
-func stop_process(process []string, conf Config) {
+func stop_process(process []string, c Config) {
 	// TODO request to server
 }
 
-func choose_command(command string, process []string, conf Config) {
+func choose_command(command string, process []string, c Config) {
 	switch command {
 	case start:
 		start_process(process, conf)
@@ -61,4 +61,7 @@ func choose_command(command string, process []string, conf Config) {
 	default:
 		break
 	}
+}
+
+func request(command string, process []string, c Config) {
 }
