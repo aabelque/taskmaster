@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 type Env struct {
-	config       string
-	verbose_conf bool
-	verbose_logs bool
+	config      string
+	verboseConf bool
+	verboseLogs bool
 }
 
 func parse_flags() Env {
@@ -19,49 +20,51 @@ func parse_flags() Env {
 	verbose := flag.String("verbose", "", "one of conf, logs or all")
 	flag.Parse()
 
-	verbose_conf := false
-	verbose_logs := false
+	verboseConf := false
+	verboseLogs := false
 
 	switch *verbose {
 	case "all":
-		verbose_conf = true
-		verbose_logs = true
+		verboseConf = true
+		verboseLogs = true
 	case "conf":
-		verbose_conf = true
+		verboseConf = true
 	case "logs":
-		verbose_logs = true
+		verboseLogs = true
 	}
 
 	return Env{
-		config:       *config,
-		verbose_conf: verbose_conf,
-		verbose_logs: verbose_logs,
+		config:      *config,
+		verboseConf: verboseConf,
+		verboseLogs: verboseLogs,
 	}
 }
 
 func main() {
 	env := parse_flags()
-	conf, err := get_server_config(env.config)
+	conf, err := getServerConfig(env.config)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	go load_signals(&conf, &env)
+	go loadSignals(&conf, &env)
 
-	if env.verbose_conf {
+	if env.verboseConf {
 		conf.Print()
 	}
 
-	for cmd_name, cmd := range conf.Program {
+	logger := NewLogger(env.verboseLogs, os.Stdout)
+
+	for cmdName, cmd := range conf.Program {
 		if cmd.Startup {
 			if cmd.Instances > 1 {
 				var i uint
 				for i = 0; i < cmd.Instances; i++ {
-					go cmd.run(fmt.Sprintf("%s-%d", cmd_name, i))
+					go cmd.run(fmt.Sprintf("%s-%d", cmdName, i), &logger)
 				}
 			} else {
-				go cmd.run(cmd_name)
+				go cmd.run(cmdName, &logger)
 			}
 		}
 	}
@@ -71,12 +74,12 @@ func main() {
 	http.HandleFunc("/start", unimplemented)
 	http.HandleFunc("/restart", unimplemented)
 	http.HandleFunc("/stop", unimplemented)
-	http.HandleFunc("/list_progs", program_lister(&conf))
+	http.HandleFunc("/list_progs", programLister(&conf))
 
-	http.ListenAndServe(":3000", nil)
+	http.ListenAndServe(":"+strconv.FormatUint(uint64(conf.Taskmasterd.Port), 10), nil)
 }
 
-func program_lister(config *Config) func(http.ResponseWriter, *http.Request) {
+func programLister(config *Config) func(http.ResponseWriter, *http.Request) {
 	keys := make([]string, len(config.Program))
 	i := 0
 	for k := range config.Program {

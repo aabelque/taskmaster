@@ -20,7 +20,7 @@ type Options struct {
 	Logfile   string
 }
 
-func get_server_config(config_file string) (Config, error) {
+func getServerConfig(config_file string) (Config, error) {
 	var conf Config
 	if err := config.GetConfig(&conf, "config.toml", config_file); err != nil {
 		return Config{}, err
@@ -29,17 +29,17 @@ func get_server_config(config_file string) (Config, error) {
 	return conf, nil
 }
 
-func load_signals(conf *Config, env *Env) {
+func loadSignals(conf *Config, env *Env) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP)
 	for range c {
-		new_conf, err := get_server_config(env.config)
+		newConf, err := getServerConfig(env.config)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		*conf = new_conf
-		if env.verbose_conf {
+		*conf = newConf
+		if env.verboseConf {
 			conf.Print()
 		}
 	}

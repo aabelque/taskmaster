@@ -23,7 +23,7 @@ type Command struct {
 	Umask            int // maybe a string ?
 }
 
-func (c Command) run(name string) {
+func (c Command) run(name string, l *Logger) {
 	args := strings.Split(c.Command, " ")
 
 	cmd := args[0]
@@ -31,7 +31,7 @@ func (c Command) run(name string) {
 
 	closed, err := os.OpenFile(os.DevNull, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
-		log_activity("CRIT", "oserror", "could not open "+os.DevNull)
+		l.LogActivity("CRIT", "oserror", "could not open "+os.DevNull)
 		return
 	}
 	defer closed.Close()
@@ -44,14 +44,14 @@ func (c Command) run(name string) {
 
 	proc, err := os.StartProcess(cmd, args, &attr)
 	if err != nil {
-		log_activity("INFO", "spawnerr", err.Error())
+		l.LogActivity("INFO", "spawnerr", err.Error())
 		return
 	}
-	log_activity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", name, proc.Pid))
+	l.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", name, proc.Pid))
 
 	ret, err := proc.Wait()
 	if err != nil {
-		log_activity("INFO", "exited", fmt.Sprintf("%s %s", name, err.Error()))
+		l.LogActivity("INFO", "exited", fmt.Sprintf("%s %s", name, err.Error()))
 		return
 	}
 
@@ -62,5 +62,5 @@ func (c Command) run(name string) {
 	} else {
 		expected = "not expected"
 	}
-	log_activity("INFO", "exited", fmt.Sprintf("%s (exit status %d; %s)", name, ret.ExitCode(), expected))
+	l.LogActivity("INFO", "exited", fmt.Sprintf("%s (exit status %d; %s)", name, ret.ExitCode(), expected))
 }
