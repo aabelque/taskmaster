@@ -1,24 +1,15 @@
 package main
 
 import (
-	"errors"
-	"os"
-	"path"
+	"log"
 
-	"github.com/BurntSushi/toml"
+	"github.com/kyazdani42/taskmaster/pkg/lib"
 )
 
-func get_client_config(c *Config) error {
-	pwd, pok := os.LookupEnv("PWD")
-	if !pok {
-		return errors.New("Could not get $PWD")
+func getClientConfig(c *Config) {
+	filename := "config_client.toml"
+	err := config.GetConfig(c, filename, "")
+	if err != nil {
+		log.Fatalln(err)
 	}
-
-	file := path.Join(pwd, "./cmd/client/config_client.toml")
-
-	if _, err := toml.DecodeFile(file, c); err != nil {
-		return err
-	}
-
-	return nil
 }

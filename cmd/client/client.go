@@ -18,6 +18,7 @@ type Config struct {
 }
 
 var cli bool = false
+var commands string = "help status start restart reload stop quit list"
 
 const (
 	help    = "help"
@@ -27,6 +28,7 @@ const (
 	reload  = "reload"
 	stop    = "stop"
 	quit    = "quit"
+	list    = "list"
 )
 
 var completer = readline.NewPrefixCompleter(
@@ -36,6 +38,7 @@ var completer = readline.NewPrefixCompleter(
 	readline.PcItem(reload),
 	readline.PcItem(stop),
 	readline.PcItem(quit),
+	readline.PcItem(list),
 )
 
 func prompt(c Config) {
@@ -48,7 +51,7 @@ func prompt(c Config) {
 		HistorySearchFold: true,
 	})
 	if err != nil {
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 	defer l.Close()
 
@@ -64,27 +67,25 @@ func prompt(c Config) {
 		} else if err == io.EOF {
 			break
 		}
-		parser_line(line, c)
+		parserLine(line, c)
 	}
 }
 
-func command_line(c Config) {
+func commandLine(c Config) {
 	if len(os.Args) == 2 {
-		check_command(os.Args[1:], c)
+		checkCommand(os.Args[1:], c)
 	} else {
 		command, process := os.Args[1], os.Args[2:]
-		choose_command(command, process, c)
+		request(command, process, c)
 	}
 }
 
 func main() {
 	var conf Config
-	if err := get_client_config(&conf); err != nil {
-		os.Exit(1)
-	}
+	getClientConfig(&conf)
 	if len(os.Args) > 1 {
 		cli = true
-		command_line(conf)
+		commandLine(conf)
 	} else {
 		prompt(conf)
 	}

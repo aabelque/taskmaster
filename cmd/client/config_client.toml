@@ -1,6 +1,0 @@
-serverurl    = "localhost"
-port         = 3000
-username     = "foo"
-password     = "pwd"
-prompt       = "taskmaster> "
-history_file = ".history_taskmaster"
