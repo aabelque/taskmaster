@@ -1,20 +1,22 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"os"
+	"regexp"
 
 	"github.com/chzyer/readline"
 )
 
 type Config struct {
-	Serverurl    string
-	Port         uint16
-	Username     string
-	Password     string
-	Prompt       string
-	History_file string
+	Serverurl   string
+	Port        uint16
+	Username    string
+	Password    string
+	Prompt      string
+	HistoryFile string
 }
 
 var cli bool = false
@@ -44,9 +46,9 @@ var completer = readline.NewPrefixCompleter(
 func prompt(c Config) {
 	l, err := readline.NewEx(&readline.Config{
 		Prompt:            c.Prompt,
-		HistoryFile:       c.History_file,
+		HistoryFile:       c.HistoryFile,
 		InterruptPrompt:   "^C",
-		EOFPrompt:         "",
+		EOFPrompt:         "quit",
 		AutoComplete:      completer,
 		HistorySearchFold: true,
 	})
@@ -54,7 +56,6 @@ func prompt(c Config) {
 		log.Fatalln(err)
 	}
 	defer l.Close()
-
 	log.SetOutput(l.Stderr())
 	for {
 		line, err := l.Readline()
@@ -76,13 +77,24 @@ func commandLine(c Config) {
 		checkCommand(os.Args[1:], c)
 	} else {
 		command, process := os.Args[1], os.Args[2:]
-		request(command, process, c)
+		if ret, _ := regexp.Match(command, []byte(commands)); !ret {
+			cerr := command
+			for i := 0; i < len(process); i++ {
+				cerr += " " + process[i]
+			}
+			fmt.Println("*** Unknown syntax: " + cerr)
+		} else if command == reload {
+			reloadProcess(command, process, c)
+		} else {
+			request(command, process, c)
+		}
 	}
 }
 
 func main() {
 	var conf Config
 	getClientConfig(&conf)
+	listProgs("/list_progs", conf)
 	if len(os.Args) > 1 {
 		cli = true
 		commandLine(conf)

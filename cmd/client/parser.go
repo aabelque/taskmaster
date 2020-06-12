@@ -45,8 +45,7 @@ func parserLine(line string, c Config) {
 				cerr += " " + process[i]
 			}
 			fmt.Println("*** Unknown syntax: " + cerr)
-		}
-		if command == reload {
+		} else if command == reload {
 			reloadProcess(command, process, c)
 		} else {
 			request(command, process, c)

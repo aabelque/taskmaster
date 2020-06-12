@@ -42,17 +42,19 @@ func listProgs(command string, c Config) {
 	url := c.Serverurl + ":" + port + command
 	req, err := client.Get(url)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	defer req.Body.Close()
 
 	if req.StatusCode == http.StatusOK {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 		}
 		list := parserRequest(body)
 		log.Println("=> " + list)
+	} else {
+		log.Println(req.Status)
 	}
 }
 
@@ -65,16 +67,20 @@ func getInfo(command string, process []string, c Config, i int) {
 	}
 	req, err := client.Get(url)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
 	}
 	defer req.Body.Close()
 	if req.StatusCode == http.StatusOK {
 		body, err := ioutil.ReadAll(req.Body)
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
 		}
 		bodystring := parserRequest(body)
 		fmt.Println(bodystring)
+	} else {
+		//TODO check error status
+		// if !process, msg => processname: ERROR (no such process)
+		log.Println(req.Status)
 	}
 }
 
