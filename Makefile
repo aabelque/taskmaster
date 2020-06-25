@@ -1,3 +1,6 @@
+format:
+	gofmt -w cmd/**/*
+
 build:
 	go build -o taskmasterctl ./cmd/client 
 	go build -o taskmasterd ./cmd/server 
