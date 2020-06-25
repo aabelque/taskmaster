@@ -63,7 +63,7 @@ func getFiles(stdout []string, stderr []string) (*os.File, *os.File, error) {
 	return outFd, errFd, nil
 }
 
-func (c Command) run(name string, l *Logger) {
+func (c Command) run(name string, l *Logger) (*os.Process, error) {
 	args := strings.Split(c.Command, " ")
 
 	cmd := args[0]
@@ -72,7 +72,7 @@ func (c Command) run(name string, l *Logger) {
 	fdOut, fdErr, err := getFiles(c.Stdout, c.Stderr)
 	if err != nil {
 		l.LogActivity("CRIT", "fileerror", err.Error())
-		return
+		return nil, nil
 	}
 	defer fdOut.Close()
 	defer fdErr.Close()
@@ -82,13 +82,10 @@ func (c Command) run(name string, l *Logger) {
 
 	attr := os.ProcAttr{Dir: c.Cwd, Env: c.Env, Files: files}
 
-	proc, err := os.StartProcess(cmd, args, &attr)
-	if err != nil {
-		l.LogActivity("INFO", "spawnerr", err.Error())
-		return
-	}
-	l.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", name, proc.Pid))
+	return os.StartProcess(cmd, args, &attr)
+}
 
+func (c Command) monitor(name string, proc *os.Process, l *Logger) {
 	ret, err := proc.Wait()
 	if err != nil {
 		l.LogActivity("INFO", "exited", fmt.Sprintf("%s %s", name, err.Error()))

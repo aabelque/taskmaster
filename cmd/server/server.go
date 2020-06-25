@@ -61,10 +61,23 @@ func main() {
 			if cmd.Instances > 1 {
 				var i uint
 				for i = 0; i < cmd.Instances; i++ {
-					go cmd.run(fmt.Sprintf("%s-%d", cmdName, i), &logger)
+					procName := fmt.Sprintf("%s-%d", cmdName, i)
+					proc, err := cmd.run(procName, &logger)
+					if err != nil {
+						logger.LogActivity("INFO", "spawnerr", err.Error())
+					} else if proc != nil {
+						logger.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", procName, proc.Pid))
+						go cmd.monitor(procName, proc, &logger)
+					}
 				}
 			} else {
-				go cmd.run(cmdName, &logger)
+				proc, err := cmd.run(cmdName, &logger)
+				if err != nil {
+					logger.LogActivity("INFO", "spawnerr", err.Error())
+				} else if proc != nil {
+					logger.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", cmdName, proc.Pid))
+					go cmd.monitor(cmdName, proc, &logger)
+				}
 			}
 		}
 	}
