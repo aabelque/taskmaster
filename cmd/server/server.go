@@ -83,6 +83,7 @@ func program_lister(config *Config) func(http.ResponseWriter, *http.Request) {
 		keys[i] = k
 		i++
 	}
+
 	return func(res http.ResponseWriter, req *http.Request) {
 		val, err := json.Marshal(keys)
 		if err != nil {
