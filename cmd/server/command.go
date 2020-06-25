@@ -8,20 +8,20 @@ import (
 )
 
 type Command struct {
-	Command          string
-	Instances        uint
-	Startup          bool
-	Reload           string
-	Return_value     int
-	Valid_after      uint32
-	Kill_after       int
-	Closing_signal   string // should be an int ?
-	Wait_before_kill int
-	Stdout           []string
-	Stderr           []string
-	Env              []string
-	Cwd              string
-	Umask            int // maybe a string ?
+	Command        string
+	Instances      uint
+	Startup        bool
+	Reload         string
+	ReturnValue    int
+	ValidAfter     uint32
+	KillAfter      int
+	ClosingSignal  string // should be an int ?
+	WaitBeforeKill int
+	Stdout         []string
+	Stderr         []string
+	Env            []string
+	Cwd            string
+	Umask          int // maybe a string ?
 }
 
 func getFile(v []string) (*os.File, error) {
@@ -96,8 +96,8 @@ func (c Command) run(name string, l *Logger) {
 	}
 
 	var expected string
-	time_ok := c.Valid_after <= uint32(ret.SystemTime().Milliseconds())
-	if ret.ExitCode() == c.Return_value && time_ok {
+	timeOk := c.ValidAfter <= uint32(ret.SystemTime().Milliseconds())
+	if ret.ExitCode() == c.ReturnValue && timeOk {
 		expected = "expected"
 	} else {
 		expected = "not expected"

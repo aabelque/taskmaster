@@ -15,7 +15,7 @@ type Env struct {
 	verboseLogs bool
 }
 
-func parse_flags() Env {
+func parseFlags() Env {
 	config := flag.String("config", "", "configuration file path")
 	verbose := flag.String("verbose", "", "one of conf, logs or all")
 	flag.Parse()
@@ -41,7 +41,7 @@ func parse_flags() Env {
 }
 
 func main() {
-	env := parse_flags()
+	env := parseFlags()
 	conf, err := getServerConfig(env.config)
 	if err != nil {
 		fmt.Println(err)
