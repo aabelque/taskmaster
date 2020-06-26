@@ -20,26 +20,26 @@ type Options struct {
 	Logfile   string
 }
 
-func get_server_config(config_file string) (Config, error) {
+func getServerConfig(configFile string) (Config, error) {
 	var conf Config
-	if err := config.GetConfig(&conf, "config.toml", config_file); err != nil {
+	if err := lib.GetConfig(&conf, "config.toml", configFile); err != nil {
 		return Config{}, err
 	}
 
 	return conf, nil
 }
 
-func load_signals(conf *Config, env *Env) {
+func loadSignals(conf *Config, env *Env) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, syscall.SIGHUP)
 	for range c {
-		new_conf, err := get_server_config(env.config)
+		newConf, err := getServerConfig(env.config)
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		*conf = new_conf
-		if env.verbose_conf {
+		*conf = newConf
+		if env.verboseConf {
 			conf.Print()
 		}
 	}
@@ -63,11 +63,11 @@ func (c *Config) Print() {
 		fmt.Println("    instances:", cmd.Instances)
 		fmt.Println("    startup:", cmd.Startup)
 		fmt.Println("    reload:", cmd.Reload)
-		fmt.Println("    expected return:", cmd.Return_value)
-		fmt.Println("    valid timeout:", cmd.Valid_after)
-		fmt.Println("    kill after timeout:", cmd.Kill_after)
-		fmt.Println("    closing signal:", cmd.Closing_signal)
-		fmt.Println("    wait before kill:", cmd.Wait_before_kill)
+		fmt.Println("    expected return:", cmd.ReturnValue)
+		fmt.Println("    valid timeout:", cmd.ValidAfter)
+		fmt.Println("    kill after timeout:", cmd.KillAfter)
+		fmt.Println("    closing signal:", cmd.ClosingSignal)
+		fmt.Println("    wait before kill:", cmd.WaitBeforeKill)
 		fmt.Println("    stdout:", cmd.Stdout)
 		fmt.Println("    stderr:", cmd.Stderr)
 		fmt.Println("    env:", cmd.Env)

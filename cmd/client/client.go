@@ -94,11 +94,11 @@ func commandLine(c Config) {
 func main() {
 	var conf Config
 	getClientConfig(&conf)
-	listProgs("/list_progs", conf)
 	if len(os.Args) > 1 {
 		cli = true
 		commandLine(conf)
 	} else {
+		listProgs("/list_progs", conf)
 		prompt(conf)
 	}
 }
