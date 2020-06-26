@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
@@ -25,10 +24,11 @@ func main() {
 
 	logger := NewLogger(env.verboseLogs, os.Stdout)
 	procs := make(map[string]ProcState)
-	initProcesses(conf, logger, procs)
+	populateProcesses(conf, logger, procs)
+	initProcesses(procs, logger)
 
 	http.HandleFunc("/reload", unimplemented)
-	http.HandleFunc("/status", unimplemented)
+	http.HandleFunc("/status", status(&procs))
 	http.HandleFunc("/start", unimplemented)
 	http.HandleFunc("/restart", unimplemented)
 	http.HandleFunc("/stop", unimplemented)
@@ -69,6 +69,7 @@ func parseFlags() Env {
 }
 
 type ProcState struct {
+	cmd   Command
 	p     *os.Process
 	state string
 	info  string
@@ -80,30 +81,33 @@ func (p ProcState) update(proc *os.Process, state string, info string) {
 	p.info = info
 }
 
-func (p ProcState) init() {
-	p.p = nil
-	p.state = "STOPPED"
-	p.info = "Not started"
+func initProc(cmd Command) ProcState {
+	return ProcState{
+		cmd:   cmd,
+		p:     nil,
+		state: "STOPPED",
+		info:  "Not started",
+	}
 }
 
-func initProcesses(conf Config, logger Logger, procs map[string]ProcState) {
+func populateProcesses(conf Config, logger Logger, procs map[string]ProcState) {
 	for cmdName, cmd := range conf.Program {
 		if cmd.Instances > 1 {
 			var i uint
 			for i = 0; i < cmd.Instances; i++ {
 				procName := fmt.Sprintf("%s-%d", cmdName, i)
-				procs[procName] = ProcState{}
-				procs[procName].init()
-				if cmd.Startup {
-					go runProcAndMonitor(cmd, procName, &logger, &procs)
-				}
+				procs[procName] = initProc(cmd)
 			}
 		} else {
-			procs[cmdName] = ProcState{}
-			procs[cmdName].init()
-			if cmd.Startup {
-				go runProcAndMonitor(cmd, cmdName, &logger, &procs)
-			}
+			procs[cmdName] = initProc(cmd)
+		}
+	}
+}
+
+func initProcesses(procs map[string]ProcState, logger Logger) {
+	for name, state := range procs {
+		if state.cmd.Startup {
+			go runProcAndMonitor(state.cmd, name, &logger, &procs)
 		}
 	}
 }
@@ -118,27 +122,4 @@ func runProcAndMonitor(cmd Command, name string, l *Logger, procs *map[string]Pr
 		l.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", name, proc.Pid))
 		go cmd.monitor(name, proc, l, procs)
 	}
-}
-
-func listPrograms(config *Config) func(http.ResponseWriter, *http.Request) {
-	keys := make([]string, len(config.Program))
-	i := 0
-	for k := range config.Program {
-		keys[i] = k
-		i++
-	}
-
-	return func(res http.ResponseWriter, req *http.Request) {
-		val, err := json.Marshal(keys)
-		if err != nil {
-			res.WriteHeader(500)
-			return
-		}
-
-		res.Write(val)
-	}
-}
-
-func unimplemented(res http.ResponseWriter, req *http.Request) {
-	res.Write([]byte("Unimplemented !"))
 }

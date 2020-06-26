@@ -22,7 +22,7 @@ type Options struct {
 
 func getServerConfig(configFile string) (Config, error) {
 	var conf Config
-	if err := config.GetConfig(&conf, "config.toml", configFile); err != nil {
+	if err := lib.GetConfig(&conf, "config.toml", configFile); err != nil {
 		return Config{}, err
 	}
 
