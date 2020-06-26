@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 type Command struct {
@@ -63,7 +64,13 @@ func getFiles(stdout []string, stderr []string) (*os.File, *os.File, error) {
 	return outFd, errFd, nil
 }
 
-func (c Command) run(name string, l *Logger) (*os.Process, error) {
+type RunError struct {
+	logLevel string
+	logType  string
+	err      error
+}
+
+func (c Command) run(name string) (*os.Process, *RunError) {
 	args := strings.Split(c.Command, " ")
 
 	cmd := args[0]
@@ -71,8 +78,7 @@ func (c Command) run(name string, l *Logger) (*os.Process, error) {
 
 	fdOut, fdErr, err := getFiles(c.Stdout, c.Stderr)
 	if err != nil {
-		l.LogActivity("CRIT", "fileerror", err.Error())
-		return nil, nil
+		return nil, &RunError{logLevel: "CRIT", logType: "fileerror", err: err}
 	}
 	defer fdOut.Close()
 	defer fdErr.Close()
@@ -82,10 +88,15 @@ func (c Command) run(name string, l *Logger) (*os.Process, error) {
 
 	attr := os.ProcAttr{Dir: c.Cwd, Env: c.Env, Files: files}
 
-	return os.StartProcess(cmd, args, &attr)
+	proc, err := os.StartProcess(cmd, args, &attr)
+	if err != nil {
+		return nil, &RunError{logLevel: "INFO", logType: "spawnerr", err: err}
+	}
+
+	return proc, nil
 }
 
-func (c Command) monitor(name string, proc *os.Process, l *Logger) {
+func (c Command) monitor(name string, proc *os.Process, l *Logger, procs *map[string]ProcState) {
 	ret, err := proc.Wait()
 	if err != nil {
 		l.LogActivity("INFO", "exited", fmt.Sprintf("%s %s", name, err.Error()))
@@ -99,5 +110,6 @@ func (c Command) monitor(name string, proc *os.Process, l *Logger) {
 	} else {
 		expected = "not expected"
 	}
+	(*procs)[name].update(proc, "EXITED", time.Now().Format("2006-01-02 3:4:5 PM"))
 	l.LogActivity("INFO", "exited", fmt.Sprintf("%s (exit status %d; %s)", name, ret.ExitCode(), expected))
 }

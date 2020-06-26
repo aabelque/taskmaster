@@ -9,6 +9,34 @@ import (
 	"strconv"
 )
 
+func main() {
+	env := parseFlags()
+	conf, err := getServerConfig(env.config)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	go loadSignals(&conf, &env)
+
+	if env.verboseConf {
+		conf.Print()
+	}
+
+	logger := NewLogger(env.verboseLogs, os.Stdout)
+	procs := make(map[string]ProcState)
+	initProcesses(conf, logger, procs)
+
+	http.HandleFunc("/reload", unimplemented)
+	http.HandleFunc("/status", unimplemented)
+	http.HandleFunc("/start", unimplemented)
+	http.HandleFunc("/restart", unimplemented)
+	http.HandleFunc("/stop", unimplemented)
+	http.HandleFunc("/list_progs", listPrograms(&conf))
+
+	http.ListenAndServe(":"+strconv.FormatUint(uint64(conf.Taskmasterd.Port), 10), nil)
+}
+
 type Env struct {
 	config      string
 	verboseConf bool
@@ -40,59 +68,59 @@ func parseFlags() Env {
 	}
 }
 
-func main() {
-	env := parseFlags()
-	conf, err := getServerConfig(env.config)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+type ProcState struct {
+	p     *os.Process
+	state string
+	info  string
+}
 
-	go loadSignals(&conf, &env)
+func (p ProcState) update(proc *os.Process, state string, info string) {
+	p.p = proc
+	p.state = state
+	p.info = info
+}
 
-	if env.verboseConf {
-		conf.Print()
-	}
+func (p ProcState) init() {
+	p.p = nil
+	p.state = "STOPPED"
+	p.info = "Not started"
+}
 
-	logger := NewLogger(env.verboseLogs, os.Stdout)
-
+func initProcesses(conf Config, logger Logger, procs map[string]ProcState) {
 	for cmdName, cmd := range conf.Program {
-		if cmd.Startup {
-			if cmd.Instances > 1 {
-				var i uint
-				for i = 0; i < cmd.Instances; i++ {
-					procName := fmt.Sprintf("%s-%d", cmdName, i)
-					proc, err := cmd.run(procName, &logger)
-					if err != nil {
-						logger.LogActivity("INFO", "spawnerr", err.Error())
-					} else if proc != nil {
-						logger.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", procName, proc.Pid))
-						go cmd.monitor(procName, proc, &logger)
-					}
+		if cmd.Instances > 1 {
+			var i uint
+			for i = 0; i < cmd.Instances; i++ {
+				procName := fmt.Sprintf("%s-%d", cmdName, i)
+				procs[procName] = ProcState{}
+				procs[procName].init()
+				if cmd.Startup {
+					go runProcAndMonitor(cmd, procName, &logger, &procs)
 				}
-			} else {
-				proc, err := cmd.run(cmdName, &logger)
-				if err != nil {
-					logger.LogActivity("INFO", "spawnerr", err.Error())
-				} else if proc != nil {
-					logger.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", cmdName, proc.Pid))
-					go cmd.monitor(cmdName, proc, &logger)
-				}
+			}
+		} else {
+			procs[cmdName] = ProcState{}
+			procs[cmdName].init()
+			if cmd.Startup {
+				go runProcAndMonitor(cmd, cmdName, &logger, &procs)
 			}
 		}
 	}
-
-	http.HandleFunc("/reload", unimplemented)
-	http.HandleFunc("/status", unimplemented)
-	http.HandleFunc("/start", unimplemented)
-	http.HandleFunc("/restart", unimplemented)
-	http.HandleFunc("/stop", unimplemented)
-	http.HandleFunc("/list_progs", programLister(&conf))
-
-	http.ListenAndServe(":"+strconv.FormatUint(uint64(conf.Taskmasterd.Port), 10), nil)
 }
 
-func programLister(config *Config) func(http.ResponseWriter, *http.Request) {
+func runProcAndMonitor(cmd Command, name string, l *Logger, procs *map[string]ProcState) {
+	proc, err := cmd.run(name)
+	if err != nil {
+		(*procs)[name].update(nil, "FATAL", err.err.Error())
+		l.LogActivity(err.logLevel, err.logType, err.err.Error())
+	} else {
+		(*procs)[name].update(proc, "RUNNING", fmt.Sprintf("pid %d, runtime %s", proc.Pid, "0:00:00"))
+		l.LogActivity("INFO", "spawned", fmt.Sprintf("'%s' with pid %d", name, proc.Pid))
+		go cmd.monitor(name, proc, l, procs)
+	}
+}
+
+func listPrograms(config *Config) func(http.ResponseWriter, *http.Request) {
 	keys := make([]string, len(config.Program))
 	i := 0
 	for k := range config.Program {
