@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/kyazdani42/taskmaster/pkg/lib"
 	"net/http"
-    "fmt"
 )
 
 func status(procs *map[string]ProcState) func(http.ResponseWriter, *http.Request) {
