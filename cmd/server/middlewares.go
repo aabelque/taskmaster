@@ -5,18 +5,26 @@ import (
 	"fmt"
 	"github.com/kyazdani42/taskmaster/pkg/lib"
 	"net/http"
+	"time"
 )
 
-func status(procs *map[string]ProcState) func(http.ResponseWriter, *http.Request) {
+func fmtDuration(d time.Duration) string {
+	h := int64(d.Hours())
+	m := int64(d.Minutes()) % 60
+	s := int64(d.Seconds()) % 60
+	return fmt.Sprintf("%d:%02d:%02d", h, m, s)
+}
+
+func status(procs *Procs) func(http.ResponseWriter, *http.Request) {
 	return func(res http.ResponseWriter, req *http.Request) {
 		var status []lib.Status
 		for name, state := range *procs {
-			if state.info == "RUNNING" {
+			if state.state == "RUNNING" {
+				since := time.Since(*state.start)
 				status = append(status, lib.Status{
 					Name:   name,
 					Status: state.state,
-					// TODO elapsed time
-					Info: fmt.Sprintf("pid %d, runtime %s", state.p.Pid, ""),
+					Info:   fmt.Sprintf("pid %d, runtime %s", state.p.Pid, fmtDuration(since)),
 				})
 			} else {
 				status = append(status, lib.Status{
@@ -26,6 +34,7 @@ func status(procs *map[string]ProcState) func(http.ResponseWriter, *http.Request
 				})
 			}
 		}
+
 		val, err := json.Marshal(status)
 		if err != nil {
 			res.WriteHeader(500)

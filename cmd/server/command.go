@@ -96,7 +96,7 @@ func (c Command) run(name string) (*os.Process, *RunError) {
 	return proc, nil
 }
 
-func (c Command) monitor(name string, proc *os.Process, l *Logger, procs *map[string]ProcState) {
+func (c Command) monitor(name string, proc *os.Process, l *Logger, procs *Procs) {
 	ret, err := proc.Wait()
 	if err != nil {
 		l.LogActivity("INFO", "exited", fmt.Sprintf("%s %s", name, err.Error()))
@@ -110,6 +110,6 @@ func (c Command) monitor(name string, proc *os.Process, l *Logger, procs *map[st
 	} else {
 		expected = "not expected"
 	}
-	(*procs)[name].update(proc, "EXITED", time.Now().Format("2006-01-02 3:4:5 PM"))
+	(*procs)[name].update(proc, "EXITED", time.Now().Format("2006-01-02 3:4:5 PM"), nil)
 	l.LogActivity("INFO", "exited", fmt.Sprintf("%s (exit status %d; %s)", name, ret.ExitCode(), expected))
 }
