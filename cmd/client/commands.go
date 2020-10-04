@@ -10,6 +10,8 @@ import (
 	"strconv"
 )
 
+type Data interface{}
+
 func reloadProcess(command string, process []string, c Config) {
 	if len(process) != 0 {
 		fmt.Println("Error: reload accepts no arguments")
@@ -51,6 +53,7 @@ func listProgs(command string, c Config) {
 		if err != nil {
 			log.Println(err)
 		}
+		// parseRequest(body)
 		list := parserRequest(body)
 		log.Println("=> " + list)
 	} else {
@@ -58,13 +61,13 @@ func listProgs(command string, c Config) {
 	}
 }
 
-func getInfo(command string, process []string, c Config, i int) {
+func getInfo(command string, process string, c Config) {
 	port := strconv.Itoa(int(c.Port))
 	client := &http.Client{}
-	url := c.Serverurl + ":" + port + "/" + command
-	if len(process) != 0 {
-		url = c.Serverurl + ":" + port + "/" + command + "/" + process[i]
-	}
+	// url := c.Serverurl + ":" + port + "/" + command
+	// if len(process) != 0 {
+	url := c.Serverurl + ":" + port + "/" + command + "/" + process
+	// }
 	req, err := client.Get(url)
 	if err != nil {
 		log.Println(err)
@@ -85,11 +88,7 @@ func getInfo(command string, process []string, c Config, i int) {
 }
 
 func request(command string, process []string, c Config) {
-	if len(process) > 1 {
-		for i := 0; i < len(process); i++ {
-			getInfo(command, process, c, i)
-		}
-	} else {
-		getInfo(command, process, c, 0)
+	for _, proc := range process {
+		getInfo(command, proc, c)
 	}
 }

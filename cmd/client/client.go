@@ -20,23 +20,23 @@ type Config struct {
 }
 
 var cli bool = false
-var commands string = "help status start restart reload stop quit list"
+var commands string = "help status launch relaunch reload stop quit list"
 
 const (
-	help    = "help"
-	status  = "status"
-	start   = "start"
-	restart = "restart"
-	reload  = "reload"
-	stop    = "stop"
-	quit    = "quit"
-	list    = "list"
+	help     = "help"
+	status   = "status"
+	launch   = "launch"
+	relaunch = "relaunch"
+	reload   = "reload"
+	stop     = "stop"
+	quit     = "quit"
+	list     = "list"
 )
 
 var completer = readline.NewPrefixCompleter(
 	readline.PcItem(status),
-	readline.PcItem(start),
-	readline.PcItem(restart),
+	readline.PcItem(launch),
+	readline.PcItem(relaunch),
 	readline.PcItem(reload),
 	readline.PcItem(stop),
 	readline.PcItem(quit),

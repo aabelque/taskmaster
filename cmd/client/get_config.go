@@ -1,14 +1,13 @@
 package main
 
 import (
-	"log"
-
 	"github.com/kyazdani42/taskmaster/pkg/lib"
+	"log"
 )
 
 func getClientConfig(c *Config) {
 	filename := "config_client.toml"
-	err := config.GetConfig(c, filename, "")
+	err := lib.GetConfig(c, filename, "")
 	if err != nil {
 		log.Fatalln(err)
 	}

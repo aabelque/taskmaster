@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -20,9 +22,9 @@ func checkCommand(args []string, c Config) {
 		reloadProcess(command, process, c)
 	case status:
 		request(command, process, c)
-	case start:
+	case launch:
 		startMessage()
-	case restart:
+	case relaunch:
 		restartMessage()
 	case stop:
 		stopMessage()
@@ -51,6 +53,16 @@ func parserLine(line string, c Config) {
 			request(command, process, c)
 		}
 	}
+}
+
+func parseRequest(body []byte) {
+	var data Data
+	err := json.Unmarshal(body, &data)
+	if err != nil {
+		log.Println("error:", err)
+	}
+	fmt.Println(body)
+	fmt.Println(data)
 }
 
 func parserRequest(req []byte) string {

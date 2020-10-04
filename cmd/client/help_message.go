@@ -7,19 +7,19 @@ import (
 
 func restartMessage() {
 	var message strings.Builder
-	message.WriteString("\x1b[31mError\x1b[0m: restart requires a process name\n")
-	message.WriteString("restart <name>          Restart a process\n")
-	message.WriteString("restart <name> <name>   Restart multiple processes\n")
-	message.WriteString("restart all             Restart all processes")
+	message.WriteString("\x1b[31mError\x1b[0m: relaunch requires a process name\n")
+	message.WriteString("relaunch <name>          Relaunch a process\n")
+	message.WriteString("relaunch <name> <name>   Relaunch multiple processes\n")
+	message.WriteString("relaunch all             Relaunch all processes")
 	fmt.Println(message.String())
 }
 
 func startMessage() {
 	var message strings.Builder
-	message.WriteString("\x1b[31mError\x1b[0m: start requires a process name\n")
-	message.WriteString("start <name>          Start a process\n")
-	message.WriteString("start <name> <name>   Start multiple processes\n")
-	message.WriteString("start all             Start all processes")
+	message.WriteString("\x1b[31mError\x1b[0m: launch requires a process name\n")
+	message.WriteString("launch <name>          Launch a process\n")
+	message.WriteString("launch <name> <name>   Launch multiple processes\n")
+	message.WriteString("launch all             Launch all processes")
 	fmt.Println(message.String())
 }
 
