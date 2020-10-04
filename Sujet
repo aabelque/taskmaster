@@ -1,0 +1,43 @@
+autorisé:
+- libs pour le parsing des fichiers de conf
+- libs pour bonus (client server par exemple. Avec go on a aps besoin)
+- lib std de go
+a faire:
+- DONE: parser un fichier de config (toml)
+- DONE: fichier de conf doit etre rechargeable avec un SIGHUP
+- fork les process
+- relancer les process
+- monitorer les process
+- les processes sont chargés par le fichier de conf
+> les changements de doivent pas effectuer de manoeuvre sur les process qui n'ont pas changé d'état.
+- systeme de logging pour un programme qui stop, relance, demarre, quitte de maniere inattendue, update de la conf...
+- shell:
+    - edition de ligne basique, historique, auto completion
+    - status
+    - start/stop/restart
+    - reload config
+    - stop main process
+- fichier de conf:
+    - commande pour lancer le programme
+    - nombre de process a lancer et laisser tourner
+    - lancer au demarrage
+    - relancer: toujours,jamais,en cas de crash
+    - code de retour d'une sortie attendue du programme
+    - combien de temps le programme doit run pour considerer qu'il fonctionne
+    - combien de redemarrage avant de s'arreter
+    - quel signal pour quitter le programme correctement (aka `kill -9`)
+    - attente apres un `graceful` stop avant de kill le programme
+    - rediriger ou supprimer stdout/stderr
+    - variables d'environnement avant de lancer le prg
+    - cwd avant de lancer le prg
+    - umask a set avant de lancer le prg
+bonus:
+- elevation de privilege (a tester sur linux) -> chmod +S
+- implementer un serveur
+- implementer un client
+- implementer le server sur http
+- fournir une interface web pour controller
+- joli cli (ca plait toujours aux correcteurs) -> aka display les erreurs de ligne de commande en rouge et les commandes valides en vert
+- logs avances (email,http,syslog...)
+bonus relou:
+- Autoriser l'utilisateur à "attach" un processus supervised à sa console, comme tmux ou screen le font, puis les "detach" a partir de celui ci et les refaire tourner enarrière plan.
